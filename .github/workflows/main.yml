@@ -20,19 +20,21 @@ jobs:
           mkdir -p $SDK_DIR/cmdline-tools/latest
           mkdir -p $SDK_DIR/licenses
           
-          # 2. Качаем инструменты (ссылка проверена)
-          wget https://google.com
+          # 2. Скачиваем инструменты (wget надежнее)
+          wget -q https://google.com
           unzip -q commandlinetools-linux-9477386_latest.zip
+          
+          # 3. Переносим содержимое правильно
           mv cmdline-tools/* $SDK_DIR/cmdline-tools/latest/
           
-          # 3. Принимаем лицензии (все сразу)
+          # 4. Принимаем лицензии
           yes | $SDK_DIR/cmdline-tools/latest/bin/sdkmanager --sdk_root=$SDK_DIR --licenses
           
-          # 4. ВРУЧНУЮ ставим build-tools 31, чтобы он не лез за 37-ми
+          # 5. Принудительно ставим Build-tools 31.0.0 и платформу 31
           $SDK_DIR/cmdline-tools/latest/bin/sdkmanager --sdk_root=$SDK_DIR "build-tools;31.0.0" "platforms;android-31" "platform-tools"
 
       - name: Build APK
         run: |
           export PATH=$PATH:$HOME/.local/bin
-          # Запускаем сборку. Buildozer увидит, что SDK и Build-tools уже есть.
+          # Теперь Buildozer увидит, что папка build-tools/31.0.0 уже существует
           buildozer android debug
