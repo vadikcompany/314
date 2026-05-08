@@ -16,9 +16,14 @@ jobs:
       - name: Build APK
         run: |
           export PATH=$PATH:$HOME/.local/bin
-          # Удаляем старое, чтобы не тянуть ошибки
-          rm -rf .buildozer
-          # Принудительно принимаем все  лицензии Android заранее
+          # 1. Создаем папку для лицензий
           mkdir -p ~/.android && touch ~/.android/repositories.cfg
-          # Запуск
-          buildozer android debug
+          mkdir -p $HOME/.buildozer/android/platform/android-sdk/licenses
+          
+          # 2. Принудительно принимаем ВСЕ лицензии (ключевой момент)
+          # Это создаст файлы подтверждения, которые SDK Manager увидит при запуске
+          printf "8933bad161af4178b1185d1a37fbf41ea5269c55\nd5624a3464d1629a51315f01726057d32d1b15d3\n24333f8a63b6825ea9c5514f83c2829b004d1fee" > $HOME/.buildozer/android/platform/android-sdk/licenses/android-sdk-license
+          printf "84831b9409646a918e30573bab4c9c91346d8abd\n50466d5a477d0cced4a742a10e563f4530a491db" > $HOME/.buildozer/android/platform/android-sdk/licenses/android-sdk-preview-license
+          
+          # 3. Запуск сборки (через yes, на всякий случай)
+          yes | buildozer android debug
