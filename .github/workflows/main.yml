@@ -7,31 +7,27 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
       - name: Install System Dependencies
         run: |
           sudo apt update
-          sudo apt install -y git zip unzip openjdk-17-jdk python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev libtinfo5 cmake libffi-dev libssl-dev libltdl-dev
+          sudo apt install -y git zip unzip python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev libtinfo5 cmake libffi-dev libssl-dev libltdl-dev
           pip install --user --upgrade "Cython<3.0.0" "setuptools<66.0.0" buildozer
-
-      - name: Force Install Android SDK Manager
-        run: |
-          # 1. Создаем дерево папок, которое ожидает увидеть Buildozer
-          mkdir -p $HOME/.buildozer/android/platform/android-sdk/cmdline-tools/latest
-          mkdir -p $HOME/.buildozer/android/platform/android-sdk/tools/bin
-          
-          # 2. Скачиваем инструменты командной строки Google
-          curl -L https://google.com -o cmdline.zip
-          unzip -q cmdline.zip
-          
-          # 3. Копируем всё в папку 'latest' (новый стандарт) и 'tools' (старый стандарт для Buildozer)
-          cp -r cmdline-tools/* $HOME/.buildozer/android/platform/android-sdk/cmdline-tools/latest/
-          cp -r cmdline-tools/* $HOME/.buildozer/android/platform/android-sdk/tools/
-          
-          # 4. Принимаем лицензии
-          yes | $HOME/.buildozer/android/platform/android-sdk/cmdline-tools/latest/bin/sdkmanager --sdk_root=$HOME/.buildozer/android/platform/android-sdk --licenses
 
       - name: Build APK
         run: |
           export PATH=$PATH:$HOME/.local/bin
-          # Теперь Buildozer увидит sdkmanager по старому пути и успокоится
+          # Сообщаем Buildozer, где искать установленный SDK
+          export ANDROID_SDK_ROOT=$ANDROID_HOME
+          # Принимаем лицензии через встроенный менеджер
+          yes | sdkmanager --licenses
+          # Запуск сборки
           buildozer android debug
