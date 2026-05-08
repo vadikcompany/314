@@ -20,7 +20,7 @@ version = 0.1
 
 # (list) Зависимости (библиотеки, которые buildozer сам скачает)
 # ВАЖНО: для работы сети и уведомлений на Android нужны эти библиотеки
-requirements = python3,kivy,plyer
+requirements = python3,kivy==2.3.0
 
 # (str) Ориентация экрана (portrait - вертикально, landscape - горизонтально)
 orientation = portrait
@@ -28,6 +28,7 @@ orientation = portrait
 # (list) Разрешения Android
 # INTERNET — обязательно для работы сокетов
 android.permissions = INTERNET, WAKE_LOCK
+android.archs = arm64-v8a
 
 # (int) API уровень (31 — это Android 12, оптимально для текущих сборок)
 android.api = 31
