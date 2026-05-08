@@ -7,30 +7,19 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install System Dependencies
+      - name: Install Dependencies
         run: |
           sudo apt update
           sudo apt install -y git zip unzip openjdk-17-jdk python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev libtinfo5 cmake libffi-dev libssl-dev libltdl-dev
           pip install --user --upgrade "Cython<3.0.0" "setuptools<66.0.0" buildozer
 
-      - name: Setup Android SDK manually
-        run: |
-          # 1. Создаем структуру папок
-          mkdir -p $HOME/.buildozer/android/platform/android-sdk/cmdline-tools
-          mkdir -p $HOME/.buildozer/android/platform/android-sdk/licenses
-          
-          # 2. Скачиваем официальные инструменты командной строки (ссылка исправлена)
-          curl -L https://google.com -o cmdline.zip
-          unzip -q cmdline.zip -d $HOME/.buildozer/android/platform/android-sdk/cmdline-tools
-          
-          # 3. Переименовываем папку для совместимости с Buildozer
-          mv $HOME/.buildozer/android/platform/android-sdk/cmdline-tools/cmdline-tools $HOME/.buildozer/android/platform/android-sdk/cmdline-tools/latest
-          
-          # 4. Принимаем лицензии
-          yes | $HOME/.buildozer/android/platform/android-sdk/cmdline-tools/latest/bin/sdkmanager --sdk_root=$HOME/.buildozer/android/platform/android-sdk --licenses
-
       - name: Build APK
         run: |
           export PATH=$PATH:$HOME/.local/bin
-          # Запускаем сборку. Теперь он увидит, что всё на месте.
-          buildozer android debug
+          # 1. Заранее принимаем лицензии через встроенный в SDK инструмент (если он появится)
+          # и через автоматический ввод "yes" для самого Buildozer
+          mkdir -p ~/.android && touch ~/.android/repositories.cfg
+          
+          # 2. Запуск сборки с авто-подтверждением всего
+          # Мы используем встроенный в buildozer способ принятия лицензий
+          yes | buildozer android debug
