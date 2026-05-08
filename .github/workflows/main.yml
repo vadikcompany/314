@@ -18,7 +18,7 @@ jobs:
           export PATH=$PATH:$HOME/.local/bin
           # Удаляем старое, чтобы не тянуть ошибки
           rm -rf .buildozer
-          # Принудительно принимаем все лицензии Android заранее
+          # Принудительно принимаем все  лицензии Android заранее
           mkdir -p ~/.android && touch ~/.android/repositories.cfg
           # Запуск
           buildozer android debug
