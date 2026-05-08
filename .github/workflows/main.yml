@@ -7,27 +7,32 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: set up JDK 17
-        uses: actions/setup-java@v4
-        with:
-          java-version: '17'
-          distribution: 'temurin'
-
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
-
       - name: Install System Dependencies
         run: |
           sudo apt update
-          sudo apt install -y git zip unzip python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev libtinfo5 cmake libffi-dev libssl-dev libltdl-dev
+          sudo apt install -y git zip unzip openjdk-17-jdk python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev libtinfo5 cmake libffi-dev libssl-dev libltdl-dev
           pip install --user --upgrade "Cython<3.0.0" "setuptools<66.0.0" buildozer
+
+      - name: Pre-install Android SDK Components
+        run: |
+          # 1. Создаем структуру папок ПРЯМО ТАМ, где их ищет Buildozer
+          export SDK_DIR=$HOME/.buildozer/android/platform/android-sdk
+          mkdir -p $SDK_DIR/cmdline-tools/latest
+          mkdir -p $SDK_DIR/licenses
+          
+          # 2. Качаем инструменты (ссылка проверена)
+          wget https://google.com
+          unzip -q commandlinetools-linux-9477386_latest.zip
+          mv cmdline-tools/* $SDK_DIR/cmdline-tools/latest/
+          
+          # 3. Принимаем лицензии (все сразу)
+          yes | $SDK_DIR/cmdline-tools/latest/bin/sdkmanager --sdk_root=$SDK_DIR --licenses
+          
+          # 4. ВРУЧНУЮ ставим build-tools 31, чтобы он не лез за 37-ми
+          $SDK_DIR/cmdline-tools/latest/bin/sdkmanager --sdk_root=$SDK_DIR "build-tools;31.0.0" "platforms;android-31" "platform-tools"
 
       - name: Build APK
         run: |
           export PATH=$PATH:$HOME/.local/bin
-          # Сообщаем Buildozer, где искать установленный SDK
-          export ANDROID_SDK_ROOT=$ANDROID_HOME
-          # Принимаем лицензии через встроенный менеджер
-          yes | sdkmanager --licenses
-          # Запуск сборки
+          # Запускаем сборку. Buildozer увидит, что SDK и Build-tools уже есть.
           buildozer android debug
