@@ -10,31 +10,31 @@ jobs:
       - name: Install System Dependencies
         run: |
           sudo apt update
-          sudo apt install -y git zip unzip openjdk-17-jdk python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev libtinfo5 cmake libffi-dev libssl-dev libltdl-dev
+          sudo apt install -y git zip unzip openjdk-17-jdk python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev libtinfo5 cmake libffi-dev libssl-dev libltdl-dev wget
           pip install --user --upgrade "Cython<3.0.0" "setuptools<66.0.0" buildozer
 
-      - name: Pre-install Android SDK Components
+      - name: Manual SDK Setup
         run: |
-          # 1. Создаем структуру папок ПРЯМО ТАМ, где их ищет Buildozer
-          export SDK_DIR=$HOME/.buildozer/android/platform/android-sdk
-          mkdir -p $SDK_DIR/cmdline-tools/latest
-          mkdir -p $SDK_DIR/licenses
+          # Указываем папку SDK
+          export SDK_DIR=$HOME/.android_sdk
+          mkdir -p $SDK_DIR/cmdline-tools
           
-          # 2. Скачиваем инструменты (wget надежнее)
-          wget -q https://google.com
-          unzip -q commandlinetools-linux-9477386_latest.zip
+          # Скачиваем инструменты во временную папку
+          cd $HOME
+          wget https://google.com -O tools.zip
+          unzip -q tools.zip -d $SDK_DIR/cmdline-tools
+          mv $SDK_DIR/cmdline-tools/cmdline-tools $SDK_DIR/cmdline-tools/latest
           
-          # 3. Переносим содержимое правильно
-          mv cmdline-tools/* $SDK_DIR/cmdline-tools/latest/
+          # Принимаем лицензии и ставим платформу 31
+          export PATH=$PATH:$SDK_DIR/cmdline-tools/latest/bin
+          yes | sdkmanager --sdk_root=$SDK_DIR "platforms;android-31" "build-tools;31.0.0" "platform-tools"
           
-          # 4. Принимаем лицензии
-          yes | $SDK_DIR/cmdline-tools/latest/bin/sdkmanager --sdk_root=$SDK_DIR --licenses
-          
-          # 5. Принудительно ставим Build-tools 31.0.0 и платформу 31
-          $SDK_DIR/cmdline-tools/latest/bin/sdkmanager --sdk_root=$SDK_DIR "build-tools;31.0.0" "platforms;android-31" "platform-tools"
+          # Создаем папку, где Buildozer БУДЕТ искать SDK, и делаем ссылку на наш готовый SDK
+          mkdir -p $HOME/.buildozer/android/platform
+          ln -s $SDK_DIR $HOME/.buildozer/android/platform/android-sdk
 
       - name: Build APK
         run: |
           export PATH=$PATH:$HOME/.local/bin
-          # Теперь Buildozer увидит, что папка build-tools/31.0.0 уже существует
+          # Мы сделали символическую ссылку (ln -s), так что Buildozer подумает, что сам всё скачал
           buildozer android debug
