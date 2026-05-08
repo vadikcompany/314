@@ -11,22 +11,27 @@ jobs:
         run: |
           sudo apt update
           sudo apt install -y git zip unzip openjdk-17-jdk python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev libtinfo5 cmake libffi-dev libssl-dev libltdl-dev
-          # Устанавливаем build-tools и платформу 31 напрямую в систему
-          sudo apt install -y android-sdk
           pip install --user --upgrade "Cython<3.0.0" "setuptools<66.0.0" buildozer
 
-      - name: Pre-accept Android Licenses
+      - name: Force Install Android SDK Manager
         run: |
-          # Создаем заглушки лицензий, чтобы Google не спрашивал подтверждения
-          mkdir -p $HOME/.android
-          touch $HOME/.android/repositories.cfg
-          # Это магические хеши лицензий Google, которые заставляют SDK думать, что всё принято
-          mkdir -p $HOME/.buildozer/android/platform/android-sdk/licenses
-          printf "8933bad161af4178b1185d1a37fbf41ea5269c55\nd5624a3464d1629a51315f01726057d32d1b15d3\n24333f8a63b6825ea9c5514f83c2829b004d1fee" > $HOME/.buildozer/android/platform/android-sdk/licenses/android-sdk-license
-          printf "84831b9409646a918e30573bab4c9c91346d8abd\n50466d5a477d0cced4a742a10e563f4530a491db" > $HOME/.buildozer/android/platform/android-sdk/licenses/android-sdk-preview-license
+          # 1. Создаем дерево папок, которое ожидает увидеть Buildozer
+          mkdir -p $HOME/.buildozer/android/platform/android-sdk/cmdline-tools/latest
+          mkdir -p $HOME/.buildozer/android/platform/android-sdk/tools/bin
+          
+          # 2. Скачиваем инструменты командной строки Google
+          curl -L https://google.com -o cmdline.zip
+          unzip -q cmdline.zip
+          
+          # 3. Копируем всё в папку 'latest' (новый стандарт) и 'tools' (старый стандарт для Buildozer)
+          cp -r cmdline-tools/* $HOME/.buildozer/android/platform/android-sdk/cmdline-tools/latest/
+          cp -r cmdline-tools/* $HOME/.buildozer/android/platform/android-sdk/tools/
+          
+          # 4. Принимаем лицензии
+          yes | $HOME/.buildozer/android/platform/android-sdk/cmdline-tools/latest/bin/sdkmanager --sdk_root=$HOME/.buildozer/android/platform/android-sdk --licenses
 
       - name: Build APK
         run: |
           export PATH=$PATH:$HOME/.local/bin
-          # Запускаем сборку без "yes |", так как лицензии уже подложены
+          # Теперь Buildozer увидит sdkmanager по старому пути и успокоится
           buildozer android debug
