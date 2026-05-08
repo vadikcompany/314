@@ -33,6 +33,9 @@ android.archs = arm64-v8a
 # (int) API уровень (31 — это Android 12, оптимально для текущих сборок)
 android.api = 31
 
+# (int) API уровень
+android.sdk = 31
+
 # (int) Минимальная версия Android (21 — это Android 5.0)
 android.minapi = 21
 
@@ -41,6 +44,9 @@ fullscreen = 0
 
 # (str) Имя главного файла (по умолчанию main.py)
 # Если у тебя файл называется по-другому, переименуй его в main.py!
+
+# (str) Android build-tools version to use
+android.build_tools_version = 31.0.0
 
 [buildozer]
 # (int) Уровень детализации логов (2 — максимально подробно)
