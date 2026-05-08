@@ -1,21 +1,25 @@
 name: Build APK
-on: [push, workflow_dispatch] # Сборка запускается при каждом обновлении кода
+on: [push, workflow_dispatch]
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout code
+        uses: actions/checkout@v4
 
       - name: Build with Buildozer
-        uses: ArtemSerebrennkov/buildozer-action@v1
+        uses: kivy/buildozer-action@master
         with:
+          save_build_cache: true
+          # Используем официальный экшен от команды Kivy
           buildozer_version: master
           command: buildozer android debug
           repository_root: .
 
       - name: Upload APK
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: my-app-apk
+          # Buildozer кладет готовый файл в папку bin
           path: bin/*.apk
