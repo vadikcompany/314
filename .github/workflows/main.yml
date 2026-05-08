@@ -19,14 +19,14 @@ jobs:
           mkdir -p $HOME/.buildozer/android/platform/android-sdk/cmdline-tools
           mkdir -p $HOME/.buildozer/android/platform/android-sdk/licenses
           
-          # 2. Скачиваем официальные инструменты командной строки Google
-          curl -O https://google.com
-          unzip -q commandlinetools-linux-9477386_latest.zip -d $HOME/.buildozer/android/platform/android-sdk/cmdline-tools
+          # 2. Скачиваем официальные инструменты командной строки (ссылка исправлена)
+          curl -L https://google.com -o cmdline.zip
+          unzip -q cmdline.zip -d $HOME/.buildozer/android/platform/android-sdk/cmdline-tools
           
-          # 3. Buildozer капризный — он ждет папку 'tools' внутри 'cmdline-tools'
+          # 3. Переименовываем папку для совместимости с Buildozer
           mv $HOME/.buildozer/android/platform/android-sdk/cmdline-tools/cmdline-tools $HOME/.buildozer/android/platform/android-sdk/cmdline-tools/latest
           
-          # 4. Принимаем лицензии заранее (чтобы не было Broken Pipe)
+          # 4. Принимаем лицензии
           yes | $HOME/.buildozer/android/platform/android-sdk/cmdline-tools/latest/bin/sdkmanager --sdk_root=$HOME/.buildozer/android/platform/android-sdk --licenses
 
       - name: Build APK
